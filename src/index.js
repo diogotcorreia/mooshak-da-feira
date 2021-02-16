@@ -5,9 +5,14 @@ const http = require('http');
 const socketIo = require('socket.io');
 const { v4: uuid } = require('uuid');
 const { enqueue, unqueue, getQueueSize } = require('./queue');
+const { startContainer } = require('./docker');
 const fs = require('fs').promises;
+const Stream = require('stream');
 
-const mooshakDaFeira = ({ tests = [], port = process.env.PORT || 5000 } = {}) => {
+const parseTests = (profiles, tests) =>
+  tests.map((v) => ({ ...v, profile: profiles[v.profile] })).filter((v) => !!v.profile);
+
+const mooshakDaFeira = ({ profiles = {}, tests = [], port = process.env.PORT || 5000 } = {}) => {
   const app = express();
   const server = http.createServer(app);
   const io = socketIo(server);
@@ -15,7 +20,9 @@ const mooshakDaFeira = ({ tests = [], port = process.env.PORT || 5000 } = {}) =>
   app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
   app.use(express.static(path.join(__dirname, 'static')));
 
-  io.on('connection', handleSocket(tests));
+  const parsedTests = parseTests(profiles, tests);
+
+  io.on('connection', handleSocket(parsedTests));
 
   server.listen(port);
   console.log(`Listening on port ${port}.`);
@@ -30,31 +37,22 @@ const handleSocket = (tests) => (socket) => {
 
 const runTests = (tests, socket, code) => {
   const start = async () => {
+    const writableStream = new Stream.Writable();
+    writableStream._write = (chunk, encoding, next) => {
+      socket.emit('result', chunk.toString());
+      next();
+    };
+    writableStream.on('close', () => socket.emit('done'));
     // Use a standard for loop to run one test at a time
-    const filePath = path.join(process.cwd, uuid());
-    await fs.writeFile(filePath, code, 'utf-8');
-    for (test of tests) await runTest(test, (v) => socket.emit('result', v, filePath));
-    await fs.unlink(filePath);
+    for (test of tests) await runTest(test, code, writableStream);
   };
 
   enqueue(socket.id, start);
 };
 
-const runTest = async (
-  {
-    compileCommand = null,
-    compileTimeout = 1000,
-    runCommand = (file) => `${file}`,
-    runTimeout = 1000,
-    sendProgramOnStdin = false,
-    stdin = null,
-    stdout = null,
-    printStdout = false,
-  } = {},
-  writeBack,
-  filePath
-) => {
-  // TODO add compiler
+const runTest = async (test, code, writeBack) => {
+  test = { ...test, stdin: `${test.stdin.replace('%mooshak_da_feira_code%', code)}\n` };
+  return await startContainer(test, writeBack);
 };
 
 module.exports = mooshakDaFeira;

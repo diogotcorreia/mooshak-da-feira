@@ -1,6 +1,6 @@
 let highlightTimeout;
 
-hljs.initHighlightingOnLoad();
+//hljs.initHighlightingOnLoad();
 
 const result = document.getElementById('result');
 const submit = document.getElementById('submit');
@@ -20,7 +20,7 @@ socket.on('connect', () => {
 submit.onclick = async () => {
   const content = document.getElementById('code').value;
 
-  socket.emit('submit', content, skipMocks.checked);
+  socket.emit('submit', content);
   submit.style.display = 'none';
   killBtn.style.display = 'inline-block';
 
@@ -34,7 +34,7 @@ socket.on('clear', () => {
 
 const handleHighlight = () => {
   if (highlightTimeout) clearTimeout(highlightTimeout);
-  highlightTimeout = setTimeout(() => hljs.highlightBlock(result), 500);
+  highlightTimeout = setTimeout(() => /*hljs.highlightBlock(result)*/ {}, 500);
 };
 
 socket.on('result', (data) => {
