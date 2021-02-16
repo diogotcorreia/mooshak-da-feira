@@ -1,12 +1,9 @@
 const path = require('path');
-const spawn = require('child_process').spawn;
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { v4: uuid } = require('uuid');
 const { enqueue, unqueue, getQueueSize } = require('./queue');
 const { startContainer } = require('./docker');
-const fs = require('fs').promises;
 const Stream = require('stream');
 
 const parseTests = (profiles, tests) =>
@@ -37,21 +34,30 @@ const handleSocket = (tests) => (socket) => {
 
 const runTests = (tests, socket, code) => {
   const start = async () => {
+    socket.emit('result', '[Mooshak da Feira] Spinning up test environment...\n\n');
     const writableStream = new Stream.Writable();
     writableStream._write = (chunk, encoding, next) => {
       socket.emit('result', chunk.toString());
       next();
     };
-    writableStream.on('close', () => socket.emit('done'));
     // Use a standard for loop to run one test at a time
     for (test of tests) await runTest(test, code, writableStream);
+    socket.emit('result', `[Mooshak da Feira] Finished executing ${tests.length} tests\n`);
+    socket.emit('done');
   };
 
   enqueue(socket.id, start);
 };
 
 const runTest = async (test, code, writeBack) => {
-  test = { ...test, stdin: `${test.stdin.replace('%mooshak_da_feira_code%', code)}\n` };
+  test = {
+    ...test,
+    stdin: test.stdin.replace('%mooshak_da_feira_code%', code),
+    files: Object.keys(test.files).reduce((acc, key) => {
+      acc[key] = test.files[key].replace('%mooshak_da_feira_code%', code);
+      return acc;
+    }, {}),
+  };
   return await startContainer(test, writeBack);
 };
 

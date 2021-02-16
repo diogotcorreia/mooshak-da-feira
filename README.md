@@ -44,7 +44,7 @@ mooshakDaFeira({
         'test.py': 'your grader code here', // probably read from a file with 'fs'
         'code.py': '%mooshak_da_feira_code%', // %mooshak_da_feira_code% will be replaced with the input from the user
       },
-      stdin: '', // you can pass %mooshak_da_feira_code% here as well
+      stdin: '', // you can pass %mooshak_da_feira_code% here as well (although not recommended)
     },
   ],
   port: 5000,
