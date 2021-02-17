@@ -3,7 +3,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const { enqueue, unqueue, getQueueSize } = require('./queue');
-const { startContainer } = require('./docker');
+const { startContainer, getNewVolume } = require('./docker');
 const Stream = require('stream');
 
 const parseTests = (profiles, tests) =>
@@ -35,21 +35,21 @@ const handleSocket = (tests) => (socket) => {
 const runTests = (tests, socket, code) => {
   const start = async () => {
     socket.emit('result', '[Mooshak da Feira] Spinning up test environment...\n\n');
-    const writableStream = new Stream.Writable();
-    writableStream._write = (chunk, encoding, next) => {
-      socket.emit('result', chunk.toString());
-      next();
-    };
+
+    // Create a shared volume for all tests
+    const volume = await getNewVolume();
+
     // Use a standard for loop to run one test at a time
-    for (test of tests) await runTest(test, code, writableStream);
-    socket.emit('result', `[Mooshak da Feira] Finished executing ${tests.length} tests\n`);
+    for (test of tests) await runTest(test, code, socket, volume);
+    socket.emit('result', `\n[Mooshak da Feira] Finished executing tests\n`);
     socket.emit('done');
+    await volume.remove();
   };
 
   enqueue(socket.id, start);
 };
 
-const runTest = async (test, code, writeBack) => {
+const runTest = async (test, code, socket, dockerVolume) => {
   test = {
     ...test,
     stdin: test.stdin.replace('%mooshak_da_feira_code%', code),
@@ -58,7 +58,13 @@ const runTest = async (test, code, writeBack) => {
       return acc;
     }, {}),
   };
-  return await startContainer(test, writeBack);
+
+  const writableStream = new Stream.Writable();
+  writableStream._write = (chunk, encoding, next) => {
+    socket.emit('result', chunk.toString());
+    next();
+  };
+  return await startContainer(test, writableStream, dockerVolume);
 };
 
 module.exports = mooshakDaFeira;
