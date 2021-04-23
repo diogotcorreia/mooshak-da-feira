@@ -10,7 +10,7 @@ const generateFolder = async (workingDirectory) => {
   return folderPath;
 };
 
-const deleteFolder = async (path) => {
+const deleteFolder = async (folderPath) => {
   await fs.rm(folderPath, { recursive: true });
 };
 

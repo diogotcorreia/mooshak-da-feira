@@ -6,6 +6,7 @@ const socketIo = require('socket.io');
 const { enqueue, unqueue, getQueueSize } = require('./queue');
 const { generateFolder, deleteFolder, saveFile } = require('./filesystem');
 const { exec } = require('child_process');
+const util = require('util');
 
 const parseTests = (profiles, tests) =>
   tests.map((v) => ({ ...v, profile: profiles[v.profile] })).filter((v) => !!v.profile);
@@ -45,15 +46,15 @@ const handleSocket = (config) => (socket) => {
   socket.on('leaveQueue', () => unqueue(socket.id));
 };
 
-const runTests = (tests, socket, code) => {
+const runTests = (config, socket, code) => {
   const start = async () => {
     socket.emit('start');
 
-    const workingDirectory = await generateFolder(tests.workingDirectory);
+    const workingDirectory = await generateFolder(config.workingDirectory);
 
     // Use a standard for loop to run one test at a time
-    for (let i = 0; i < tests.length; ++i)
-      await runTest(i, tests[i], code, socket, workingDirectory);
+    for (let i = 0; i < config.tests.length; ++i)
+      await runTest(i, config.tests[i], code, socket, workingDirectory);
 
     await deleteFolder(workingDirectory);
     socket.emit('done');
@@ -65,32 +66,49 @@ const runTests = (tests, socket, code) => {
 
 const runTest = async (i, test, code, socket, workingDirectory) => {
   try {
-    await saveFile(workingDirectory, test.file, code);
+    await saveFile(workingDirectory, test.profile.file, code);
 
-    // TODO run compilation phase
+    try {
+      // TODO run compilation phase
+      for (cmd of test.profile.preRunCommands)
+        await util.promisify(exec)(cmd, {
+          cwd: workingDirectory,
+          timeout: 1000,
+          windowsHide: true,
+        });
+    } catch (e) {
+      socket.emit('result', { test: i, status: 'COMPILE_ERROR', ...e });
+      return;
+    }
 
     await new Promise((resolve) => {
-      const process = exec(
-        test.command,
+      const cmdProcess = exec(
+        test.profile.command,
         {
           cwd: workingDirectory,
-          timeout: test.timeout,
+          timeout: test.profile.timeout,
           windowsHide: true,
         },
         (err, stdout, stderr) => {
           if (err) {
-            socket.emit('result', { test: i, status: 'RUNTIME_ERROR', error: err });
+            socket.emit('result', {
+              test: i,
+              status: err.killed ? 'TIME_LIMIT_EXCEEDED' : 'RUNTIME_ERROR',
+              ...err,
+            });
             resolve();
             return;
           }
-          socket.emit('result', { test: i, result: 'SUCCESS', stdout, stdin });
+          socket.emit('result', { test: i, result: 'SUCCESS', stdout, stderr });
           resolve();
         }
       );
 
-      if (test.input) process.stdin.write(test.input);
+      if (test.input) cmdProcess.stdin.write(test.input, console.error);
+      cmdProcess.stdin.end(console.error);
     });
   } catch (e) {
+    console.error(e);
     socket.emit('result', { test: i, status: 'GRADER_EXCEPTION' });
   }
 };

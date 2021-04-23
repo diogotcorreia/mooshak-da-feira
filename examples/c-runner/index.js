@@ -1,10 +1,11 @@
+const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const mooshakDaFeira = require('../../src/index');
 
 const getTest = (id) => ({
-  input: path.resolve(__dirname, 'tests', `test${id}.in`),
-  output: path.resolve(__dirname, 'tests', `test${id}.out`),
+  input: fs.readFileSync(path.resolve(__dirname, 'tests', `test${id}.in`), 'utf-8'),
+  output: fs.readFileSync(path.resolve(__dirname, 'tests', `test${id}.out`), 'utf-8'),
 });
 
 mooshakDaFeira({
