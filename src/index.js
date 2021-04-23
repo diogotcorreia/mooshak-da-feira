@@ -101,7 +101,7 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
           }
           socket.emit('result', {
             test: i,
-            result: stdout == test.output ? 'SUCCESS' : 'WRONG_ANSWER',
+            status: stdout == test.output ? 'SUCCESS' : 'WRONG_ANSWER',
             stdout,
             stderr,
           });

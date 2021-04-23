@@ -1,49 +1,53 @@
-let highlightTimeout;
-
-//hljs.initHighlightingOnLoad();
-
-const result = document.getElementById('result');
 const submit = document.getElementById('submit');
-const killBtn = document.getElementById('kill');
+let globalTests = [];
 
 const socket = io();
 
-killBtn.onclick = async () => {
-  socket.emit('kill');
-};
-
 socket.on('connect', () => {
-  submit.style.display = 'inline-block';
-  killBtn.style.display = 'none';
+  socket.emit('tests');
 });
 
 submit.onclick = async () => {
   const content = document.getElementById('code').value;
 
   socket.emit('submit', content);
-  submit.style.display = 'none';
-  killBtn.style.display = 'inline-block';
+  submit.disabled = true;
 
   const lastrun = document.getElementById('last-run');
   lastrun.innerText = new Date().toLocaleString();
 };
 
-socket.on('clear', () => {
-  result.innerText = '';
-});
+socket.on('result', ({ test, ...data }) => {
+  const testNode = document.getElementById(`test-${test}`);
 
-const handleHighlight = () => {
-  if (highlightTimeout) clearTimeout(highlightTimeout);
-  highlightTimeout = setTimeout(() => /*hljs.highlightBlock(result)*/ {}, 500);
-};
-
-socket.on('result', (data) => {
-  result.appendChild(document.createTextNode(data));
-  handleHighlight();
+  testNode.getElementsByClassName('test-result')[0].innerText = data.status || 'UNKNOWN';
+  testNode.getElementsByClassName('test-stdout')[0].innerText = data.stdout;
+  testNode.getElementsByClassName('test-stderr')[0].innerText = data.stderr;
+  testNode.getElementsByClassName('test-code')[0].innerText = `Exit code: ${data.code || '0'}`;
+  testNode.getElementsByClassName('test-signal')[0].innerText = `Exit signal: ${data.code || '0'}`;
 });
 
 socket.on('done', () => {
-  handleHighlight();
-  killBtn.style.display = 'none';
-  submit.style.display = 'inline-block';
+  submit.disabled = false;
+});
+
+socket.on('tests', (tests) => {
+  const testsDiv = document.getElementById('tests');
+
+  globalTests = tests;
+
+  tests.forEach(({ tags, description }, i) => {
+    testsDiv.innerHTML += `
+    <div class="test" id="test-${i}">
+      <h4>Test ${i + 1}</h4>
+      <p>${description}</p>
+      <p>Tags: ${tags}</p>
+      <p class="test-result">Not ran</p>
+      <p class="test-stdout"></p>
+      <p class="test-stderr"></p>
+      <p class="test-code"></p>
+      <p class="test-signal"></p>
+    </div>
+  `;
+  });
 });

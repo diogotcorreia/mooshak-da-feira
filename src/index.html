@@ -3,14 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FP Project2 Tester</title>
+    <title>Mooshak da Feira</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@4/distr/fira_code.css"
     />
-    <link rel="stylesheet" href="/assets/styles/stackoverflow-dark.css" />
-    <script src="/assets/highlight.pack.js"></script>
     <link rel="stylesheet" href="/mooshak-da-feira.css" />
   </head>
   <body>
@@ -22,20 +20,20 @@
         </div>
         <div>
           <button id="submit">Run tests</button>
-          <button id="kill" style="display: none">Kill execution</button>
+          <!--<button id="kill" style="display: none">Kill execution</button>-->
         </div>
         <span class="warning">Do not move away from this tab while the tests are running.</span>
         <p>
           Last ran: <span id="last-run"><i>never</i></span>
           <br />
         </p>
+        <p id="progress"></p>
       </div>
-      <div>
-        <p>Output:</p>
-        <div class="result">
-          <pre id="result" class="language-python"></pre>
-        </div>
-      </div>
+    </div>
+
+    <div>
+      <h3>Tests</h3>
+      <div id="tests"></div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
