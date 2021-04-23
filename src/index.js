@@ -99,7 +99,12 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
             resolve();
             return;
           }
-          socket.emit('result', { test: i, result: 'SUCCESS', stdout, stderr });
+          socket.emit('result', {
+            test: i,
+            result: stdout == test.output ? 'SUCCESS' : 'WRONG_ANSWER',
+            stdout,
+            stderr,
+          });
           resolve();
         }
       );
