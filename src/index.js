@@ -1,15 +1,21 @@
 const path = require('path');
+const os = require('os');
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const { enqueue, unqueue, getQueueSize } = require('./queue');
-const { startContainer, getNewVolume } = require('./docker');
-const Stream = require('stream');
+const { generateFolder, deleteFolder, saveFile } = require('./filesystem');
+const { exec } = require('child_process');
 
 const parseTests = (profiles, tests) =>
   tests.map((v) => ({ ...v, profile: profiles[v.profile] })).filter((v) => !!v.profile);
 
-const mooshakDaFeira = ({ profiles = {}, tests = [], port = process.env.PORT || 5000 } = {}) => {
+const mooshakDaFeira = ({
+  workingDirectory = os.tmpdir(),
+  profiles = {},
+  tests = [],
+  port = process.env.PORT || 5000,
+} = {}) => {
   const app = express();
   const server = http.createServer(app);
   const io = socketIo(server);
@@ -19,52 +25,74 @@ const mooshakDaFeira = ({ profiles = {}, tests = [], port = process.env.PORT || 
 
   const parsedTests = parseTests(profiles, tests);
 
-  io.on('connection', handleSocket(parsedTests));
+  io.on('connection', handleSocket({ workingDirectory, tests: parsedTests }));
 
   server.listen(port);
   console.log(`Listening on port ${port}.`);
 };
 
-const handleSocket = (tests) => (socket) => {
+const handleSocket = (config) => (socket) => {
   socket.on('submit', (code) => {
     socket.emit('clear');
-    runTests(tests, socket, code);
+    runTests(config, socket, code);
   });
+  socket.on('tests', () => {
+    socket.emit(
+      'tests',
+      config.tests.map((test) => ({ tags: test.tags, description: test.description }))
+    );
+  });
+  socket.on('leaveQueue', () => unqueue(socket.id));
 };
 
 const runTests = (tests, socket, code) => {
   const start = async () => {
-    socket.emit('result', '[Mooshak da Feira] Spinning up test environment...\n\n');
+    socket.emit('start');
 
-    // Create a shared volume for all tests
-    const volume = await getNewVolume();
+    const workingDirectory = await generateFolder(tests.workingDirectory);
 
     // Use a standard for loop to run one test at a time
-    for (test of tests) await runTest(test, code, socket, volume);
-    socket.emit('result', `\n[Mooshak da Feira] Finished executing tests\n`);
+    for (let i = 0; i < tests.length; ++i)
+      await runTest(i, tests[i], code, socket, workingDirectory);
+
+    await deleteFolder(workingDirectory);
     socket.emit('done');
-    await volume.remove();
   };
 
+  socket.emit('queueSize', getQueueSize());
   enqueue(socket.id, start);
 };
 
-const runTest = async (test, code, socket, dockerVolume) => {
-  test = {
-    ...test,
-    stdin: test.stdin.replace('%mooshak_da_feira_code%', code),
-    files: Object.keys(test.files).reduce((acc, key) => {
-      acc[key] = test.files[key].replace('%mooshak_da_feira_code%', code);
-      return acc;
-    }, {}),
-  };
+const runTest = async (i, test, code, socket, workingDirectory) => {
+  try {
+    await saveFile(workingDirectory, test.file, code);
 
-  const writableStream = new Stream.Writable();
-  writableStream._write = (chunk, encoding, next) => {
-    socket.emit('result', chunk.toString());
-    next();
-  };
-  return await startContainer(test, writableStream, dockerVolume);
+    // TODO run compilation phase
+
+    await new Promise((resolve) => {
+      const process = exec(
+        test.command,
+        {
+          cwd: workingDirectory,
+          timeout: test.timeout,
+          windowsHide: true,
+        },
+        (err, stdout, stderr) => {
+          if (err) {
+            socket.emit('result', { test: i, status: 'RUNTIME_ERROR', error: err });
+            resolve();
+            return;
+          }
+          socket.emit('result', { test: i, result: 'SUCCESS', stdout, stdin });
+          resolve();
+        }
+      );
+
+      if (test.input) process.stdin.write(test.input);
+    });
+  } catch (e) {
+    socket.emit('result', { test: i, status: 'GRADER_EXCEPTION' });
+  }
 };
 
 module.exports = mooshakDaFeira;
