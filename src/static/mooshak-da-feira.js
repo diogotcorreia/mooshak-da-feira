@@ -38,17 +38,16 @@ socket.on('done', () => {
 const formatTags = (tags) => tags.map((tag) => `<span class="test-tag">${tag}</span>`);
 
 const formatResult = (result) => {
-  //TODO
   const color =
     {
-      NOT_RAN: '#f00',
+      NOT_RAN: '#758173',
       GRADER_EXCEPTION: '#f00',
-      COMPILE_ERROR: '#f00',
-      TIME_LIMIT_EXCEEDED: '#f00',
-      RUNTIME_ERROR: '#f00',
-      WRONG_ANSWER: '#f00',
-      SUCCESS: '#f00',
-    }[result] || '#f00';
+      COMPILE_ERROR: '#721121',
+      TIME_LIMIT_EXCEEDED: '#A9640F',
+      RUNTIME_ERROR: '#981F37',
+      WRONG_ANSWER: '#A01821',
+      SUCCESS: '#48653E',
+    }[result] || '#000';
   return `<span class="test-tag" style="background: ${color};">${result.replace('_', ' ')}</span>`;
 };
 
