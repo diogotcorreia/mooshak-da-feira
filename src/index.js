@@ -98,8 +98,8 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
             resolve();
             return;
           }
-          const shouldTrim = test.trimOutputOnCompare ?? test.profile.trimOutputOnCompare;
-          if (shouldTrim) stdout = stdout.trim();
+          const shouldTrim = test.ignoreNewlinesOnCompare ?? test.profile.ignoreNewlinesOnCompare;
+          if (shouldTrim) stdout = stdout.replace(/\n/g, '');
           socket.emit('result', {
             test: i,
             status: stdout == test.output ? 'SUCCESS' : 'WRONG_ANSWER',
