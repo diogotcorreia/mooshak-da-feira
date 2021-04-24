@@ -69,7 +69,6 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
     await saveFile(workingDirectory, test.profile.file, code);
 
     try {
-      // TODO run compilation phase
       for (cmd of test.profile.preRunCommands)
         await util.promisify(exec)(cmd, {
           cwd: workingDirectory,
@@ -99,6 +98,8 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
             resolve();
             return;
           }
+          const shouldTrim = test.trimOutputOnCompare ?? test.profile.trimOutputOnCompare;
+          if (shouldTrim) stdout = stdout.trim();
           socket.emit('result', {
             test: i,
             status: stdout == test.output ? 'SUCCESS' : 'WRONG_ANSWER',

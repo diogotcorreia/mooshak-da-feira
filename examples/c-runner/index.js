@@ -19,6 +19,7 @@ mooshakDaFeira({
       ],
       command: './main', // the command which will be given stdin
       timeout: 1000,
+      trimOutputOnCompare: false, // whether to trim the output before comparing it to the expected output
     },
   },
   tests: [
@@ -26,6 +27,7 @@ mooshakDaFeira({
       profile: 'c',
       tags: ['public test'],
       description: "Sends 'foo' on stdin and expects 'bar' to be printed.",
+      trimOutputOnCompare: true, // overwrite the default profile value
       ...getTest('01'),
     },
     {
