@@ -65,6 +65,7 @@ a {
   padding: 6px 16px;
   border-radius: 4px;
   width: fit-content;
+  margin-top: 4px;
 }
 th,
 td {
@@ -140,4 +141,8 @@ code {
   content: '';
   display: table;
   clear: both;
+}
+
+.control {
+  margin-bottom: 13px;
 }

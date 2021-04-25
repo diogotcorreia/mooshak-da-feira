@@ -22,10 +22,12 @@
             placeholder="Paste your file contents here"
           ></textarea>
         </div>
-        <div>
+        <div class="control">
           <button id="submit">Run tests</button>
           <!--<button id="kill" style="display: none">Kill execution</button>-->
+          <div id="progressBar"></div>
         </div>
+        <div></div>
         <span class="warning">Do not move away from this tab while the tests are running.</span>
         <p>
           Last ran: <span id="last-run"><i>never</i></span>

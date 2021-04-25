@@ -1,6 +1,7 @@
 const submit = document.getElementById('submit');
 let globalTests = [];
-
+var testCounter = 0;
+var testEvaluated = 1;
 const socket = io();
 
 const resultColors = {
@@ -22,6 +23,7 @@ const reset = () => {
     const header = document.getElementById(`test-header-${i}`);
     header.getElementsByClassName('test-result')[0].innerHTML = formatResult('NOT_RAN');
     document.getElementById(`test-button-${i}`).style.borderColor = resultColors['NOT_RAN'];
+    testEvaluated = 1;
   });
 };
 
@@ -59,6 +61,10 @@ socket.on('result', ({ test, ...data }) => {
   document.getElementById(`test-button-${test}`).style.borderColor =
     resultColors[data.status] || '#000';
   if (data.status != 'SUCCESS') toggleButton(test);
+  const progress = document.getElementById('progressBar');
+  progress.innerHTML = `${testEvaluated} / ${testCounter}`;
+  if (testEvaluated == testCounter) progress.innerHTML += ' All Done!';
+  testEvaluated += 1;
 });
 
 socket.on('done', () => {
@@ -132,5 +138,6 @@ socket.on('tests', (tests) => {
 	    </div>
       `;
     injectAccordionListeners();
+    testCounter += 1;
   });
 });
