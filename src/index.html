@@ -15,8 +15,12 @@
     <div class="content">
       <div>
         <div>
-          <p>Paste your file contents below:</p>
-          <textarea id="code" rows="30" cols="80"></textarea>
+          <textarea
+            id="code"
+            rows="30"
+            cols="80"
+            placeholder="Paste your file contents here"
+          ></textarea>
         </div>
         <div>
           <button id="submit">Run tests</button>
@@ -35,7 +39,6 @@
       <h3>Tests</h3>
       <div id="tests"></div>
     </div>
-
     <script src="/socket.io/socket.io.js"></script>
     <script src="/mooshak-da-feira.js"></script>
   </body>

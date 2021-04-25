@@ -42,7 +42,7 @@ a {
   word-wrap: break-word; /* Internet Explorer 5.5+ */
   font-size: 85%;
 }
-button {
+.content button {
   background-color: #00aef8;
   color: rgba(0, 0, 0, 0.87);
   border: none;
@@ -81,7 +81,7 @@ code {
   border-radius: 6px;
 }
 
-.test {
+.panel .test {
   border: 1px solid #444;
   border-radius: 15px;
   padding: 15px;
@@ -92,6 +92,7 @@ code {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 14px;
 }
 
 .test-tag {
@@ -99,4 +100,44 @@ code {
   border-radius: 3px;
   text-transform: uppercase;
   padding: 2px 5px;
+}
+
+.accordion {
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: left;
+  outline: none;
+  transition: 0.4s;
+  font: 20px Lato, sans-serif;
+  margin-bottom: 5px;
+  border-radius: 15px;
+  background-color: #1c1b1b;
+  color: white;
+}
+.panel {
+  padding: 0 18px;
+  background-color: #1c1b1b;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+
+.accordion:after {
+  font-size: 13px;
+  float: right;
+  margin-left: 5px;
+}
+
+.block {
+  float: left;
+  width: 33.33%;
+  padding: 0px;
+  margin-top: 10px;
+}
+
+.panel:after {
+  content: '';
+  display: table;
+  clear: both;
 }
