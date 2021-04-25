@@ -115,6 +115,7 @@ code {
   border-radius: 15px;
   background-color: #1c1b1b;
   color: white;
+  border: 2px solid;
 }
 .panel {
   padding: 0 18px;
