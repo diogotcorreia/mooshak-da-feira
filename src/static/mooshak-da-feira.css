@@ -131,11 +131,28 @@ code {
   margin-left: 5px;
 }
 
+.blocks {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .block {
   float: left;
   width: 33.33%;
-  padding: 0px;
+  padding: 5px;
   margin-top: 10px;
+  box-sizing: border-box;
+}
+
+.test-codeblock {
+  border: 1px solid #444;
+  height: clamp(50px, 50vh, 500px);
+  overflow: auto;
+  padding: 2px;
+}
+
+.output .output-error {
+  color: #c5213c;
 }
 
 .panel:after {

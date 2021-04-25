@@ -23,8 +23,9 @@ const reset = () => {
     const header = document.getElementById(`test-header-${i}`);
     header.getElementsByClassName('test-result')[0].innerHTML = formatResult('NOT_RAN');
     document.getElementById(`test-button-${i}`).style.borderColor = resultColors['NOT_RAN'];
-    testEvaluated = 1;
+    document.querySelector(`#test-${i} .output`).innerHTML = '';
   });
+  testEvaluated = 1;
 };
 
 const toggleButton = (test) => {
@@ -51,8 +52,16 @@ socket.on('result', ({ test, ...data }) => {
   header.getElementsByClassName('test-result')[0].innerHTML = formatResult(
     data.status || 'UNKNOWN'
   );
-  testNode.getElementsByClassName('test-stdout')[0].innerText = data.stdout;
-  testNode.getElementsByClassName('test-stderr')[0].innerText = data.stderr;
+
+  const outputNode = testNode.getElementsByClassName('output')[0];
+  outputNode.innerText += data.stdout || '';
+  if (data.stderr) {
+    const stderrNode = document.createElement('span');
+    stderrNode.className = 'output-error';
+    stderrNode.innerText = data.stderr;
+    outputNode.appendChild(stderrNode);
+  }
+
   testNode.getElementsByClassName('test-code')[0].innerText = `Exit code: ${data.code || '0'}`;
   testNode.getElementsByClassName('test-signal')[0].innerText = `Exit signal: ${
     data.signal || 'none'
@@ -102,7 +111,7 @@ socket.on('tests', (tests) => {
 
   testsDiv.innerHTML = '';
 
-  tests.forEach(({ tags, description }, i) => {
+  tests.forEach(({ tags, description, input, output }, i) => {
     testsDiv.innerHTML += `<button class="accordion" id="test-button-${i}" style="border-color: ${
       resultColors['NOT_RAN']
     };">
@@ -111,32 +120,34 @@ socket.on('tests', (tests) => {
         <p>${formatTags(tags)}</p>
         <p class="test-result">${formatResult('NOT_RAN')}</p>
       </div></button>
-	    <div class="panel">
+      <div class="panel">
         <div class="test" id="test-${i}">
           <div class="test-content">
             <p>${description}</p>
             <p class="test-signal"></p>
             <p class="test-code"></p>
-            <div class="test-output">
-              <pre class="test-stdout"></pre>
-              <pre class="test-stderr"></pre>
+          </div>
+          <div class="blocks">
+            <div class="block">
+              <p>Input</p>
+              <pre class="test-codeblock input"></pre>
+            </div>
+            <div class="block">
+              <p>Expected Output</p>
+              <pre class="test-codeblock expected-output"></pre>
+            </div>
+            <div class="block">
+              <p>Program Output</p>
+              <pre class="test-codeblock output"></pre>
             </div>
           </div>
-          <div class="block">
-            <p>Input</p>
-            <textarea id="code" rows="30" cols="60"></textarea>
-          </div>
-          <div class="block">
-            <p>Expected Output</p>
-            <textarea id="code" rows="30" cols="60"></textarea>
-          </div>
-          <div class="block">
-            <p>Program Output</p>
-            <textarea id="code" rows="30" cols="60"></textarea>
-          </div>
         </div>
-	    </div>
+      </div>
       `;
+
+    document.querySelector(`#test-${i} .input`).innerText = input || '';
+    document.querySelector(`#test-${i} .expected-output`).innerText = output || '';
+
     injectAccordionListeners();
     testCounter += 1;
   });

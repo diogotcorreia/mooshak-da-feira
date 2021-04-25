@@ -40,7 +40,12 @@ const handleSocket = (config) => (socket) => {
   socket.on('tests', () => {
     socket.emit(
       'tests',
-      config.tests.map((test) => ({ tags: test.tags, description: test.description }))
+      config.tests.map((test) => ({
+        tags: test.tags,
+        description: test.description,
+        input: test.input,
+        output: test.output,
+      }))
     );
   });
   socket.on('leaveQueue', () => unqueue(socket.id));
