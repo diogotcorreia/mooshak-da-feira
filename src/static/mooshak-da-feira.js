@@ -2,6 +2,9 @@ const submit = document.getElementById('submit');
 let globalTests = [];
 var testCounter = 0;
 var testEvaluated = 1;
+var successCounter = 0;
+var failedCounter = 0;
+var runtimeErrorCounter = 0;
 const socket = io();
 
 const resultColors = {
@@ -24,6 +27,13 @@ const reset = () => {
     header.getElementsByClassName('test-result')[0].innerHTML = formatResult('NOT_RAN');
     document.getElementById(`test-button-${i}`).style.borderColor = resultColors['NOT_RAN'];
     document.querySelector(`#test-${i} .output`).innerHTML = '';
+    const summary = document.getElementById('summary');
+    const el = document.getElementById(`test-button-${i}`);
+    const panel = el.nextElementSibling;
+    panel.style.maxHeight = null;
+    summary.innerHTML = 'Waiting for tests to run...';
+    testEvaluated = 1;
+    failedCounter = 0;
   });
   testEvaluated = 1;
 };
@@ -69,11 +79,27 @@ socket.on('result', ({ test, ...data }) => {
 
   document.getElementById(`test-button-${test}`).style.borderColor =
     resultColors[data.status] || '#000';
-  if (data.status != 'SUCCESS') toggleButton(test);
+  if (data.status != 'SUCCESS') {
+    toggleButton(test);
+    ++failedCounter;
+  } else if (data.status == 'RUNTIME_ERROR') ++runtimeErrorCounter;
+  else ++successCounter;
   const progress = document.getElementById('progressBar');
   progress.innerHTML = `${testEvaluated} / ${testCounter}`;
-  if (testEvaluated == testCounter) progress.innerHTML += ' All Done!';
-  testEvaluated += 1;
+  if (testEvaluated == testCounter) {
+    progress.innerHTML += ' All Done!';
+    const summary = document.getElementById('summary');
+    summary.innerHTML = '';
+    if (failedCounter != 0) {
+      summary.innerHTML = `
+      <div>Tests Passed: ${successCounter}</div>
+      <div>Tests Failed: ${failedCounter}</div>
+      <div>Run Time Error: ${runtimeErrorCounter}</div>
+      <div>Total Tests: ${testCounter}</div>
+      `;
+    } else summary.innerHTML = 'Go grab your 20 ;)';
+  }
+  ++testEvaluated;
 });
 
 socket.on('done', () => {
@@ -149,6 +175,6 @@ socket.on('tests', (tests) => {
     document.querySelector(`#test-${i} .expected-output`).innerText = output || '';
 
     injectAccordionListeners();
-    testCounter += 1;
+    ++testCounter;
   });
 });
