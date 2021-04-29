@@ -14,7 +14,7 @@
   <body>
     <div class="content">
       <div>
-        <div>
+        <div class="inputArea">
           <textarea
             id="code"
             rows="30"
@@ -27,7 +27,6 @@
           <!--<button id="kill" style="display: none">Kill execution</button>-->
           <div id="progressBar"></div>
         </div>
-        <div></div>
         <span class="warning">Do not move away from this tab while the tests are running.</span>
         <p>
           Last ran: <span id="last-run"><i>never</i></span>
@@ -36,7 +35,12 @@
         <p id="progress"></p>
       </div>
     </div>
-
+    <div>
+      <h3>Summary</h3>
+      <div>
+        <div id="summary">Run the tests first!</div>
+      </div>
+    </div>
     <div>
       <h3>Tests</h3>
       <div id="tests"></div>
