@@ -73,6 +73,8 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
   try {
     await saveFile(workingDirectory, test.profile.file, code);
 
+    await test.profile?.preRunHook?.({ test, workingDirectory });
+
     try {
       for (cmd of test.profile.preRunCommands)
         await util.promisify(exec)(cmd, {

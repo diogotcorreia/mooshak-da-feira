@@ -20,6 +20,7 @@ mooshakDaFeira({
       command: './main', // the command which will be given stdin
       timeout: 1000,
       ignoreNewlinesOnCompare: false, // whether to replace newlines with nothing in the output before comparing it to the expected output
+      preRunHook: ({ test, workingDirectory }) => {}, // runs before preRunCommands
     },
   },
   tests: [
