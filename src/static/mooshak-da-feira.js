@@ -1,7 +1,7 @@
 const submit = document.getElementById('submit');
 let globalTests = [];
 var testCounter = 0;
-var testEvaluated = 1;
+var testEvaluated = 0;
 var successCounter = 0;
 var failedCounter = 0;
 var runtimeErrorCounter = 0;
@@ -34,8 +34,10 @@ const reset = () => {
   });
   const summary = document.getElementById('summary');
   summary.innerHTML = 'Waiting for tests to run...';
-  testEvaluated = 1;
+  testEvaluated = 0;
   failedCounter = 0;
+  successCounter = 0;
+  runtimeErrorCounter = 0;
 };
 
 const toggleButton = (test) => {
@@ -84,7 +86,9 @@ socket.on('result', ({ test, ...data }) => {
     ++failedCounter;
   } else if (data.status == 'RUNTIME_ERROR') ++runtimeErrorCounter;
   else ++successCounter;
+
   const progress = document.getElementById('progressBar');
+  ++testEvaluated;
   progress.innerHTML = `${testEvaluated} / ${testCounter}`;
   if (testEvaluated == testCounter) {
     progress.innerHTML += ' All Done!';
@@ -99,7 +103,6 @@ socket.on('result', ({ test, ...data }) => {
       `;
     } else summary.innerHTML = 'Go grab your 20 ;)';
   }
-  ++testEvaluated;
 });
 
 socket.on('done', () => {
@@ -175,6 +178,6 @@ socket.on('tests', (tests) => {
     document.querySelector(`#test-${i} .expected-output`).innerText = output || '';
 
     injectAccordionListeners();
-    ++testCounter;
   });
+  testCounter = tests.length;
 });
