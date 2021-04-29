@@ -47,6 +47,14 @@ const toggleButton = (test) => {
   panel.style.maxHeight = panel.scrollHeight + 'px';
 };
 
+colapse.onclick = async () => {
+  globalTests.forEach((_, test) => {
+    const el = document.getElementById(`test-button-${test}`);
+    const panel = el.nextElementSibling;
+    panel.style.maxHeight = null;
+  });
+};
+
 submit.onclick = async () => {
   const content = document.getElementById('code').value;
 

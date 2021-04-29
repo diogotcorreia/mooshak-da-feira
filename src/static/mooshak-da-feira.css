@@ -31,6 +31,7 @@ a {
   height: 484px;
   position: relative;
 }
+
 #result {
   width: 100%;
   overflow: hidden;
@@ -42,7 +43,8 @@ a {
   word-wrap: break-word; /* Internet Explorer 5.5+ */
   font-size: 85%;
 }
-.content button {
+.content button,
+.test-control {
   background-color: #00aef8;
   color: rgba(0, 0, 0, 0.87);
   border: none;
