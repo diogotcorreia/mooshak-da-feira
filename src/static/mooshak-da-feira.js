@@ -27,15 +27,15 @@ const reset = () => {
     header.getElementsByClassName('test-result')[0].innerHTML = formatResult('NOT_RAN');
     document.getElementById(`test-button-${i}`).style.borderColor = resultColors['NOT_RAN'];
     document.querySelector(`#test-${i} .output`).innerHTML = '';
-    const summary = document.getElementById('summary');
+
     const el = document.getElementById(`test-button-${i}`);
     const panel = el.nextElementSibling;
     panel.style.maxHeight = null;
-    summary.innerHTML = 'Waiting for tests to run...';
-    testEvaluated = 1;
-    failedCounter = 0;
   });
+  const summary = document.getElementById('summary');
+  summary.innerHTML = 'Waiting for tests to run...';
   testEvaluated = 1;
+  failedCounter = 0;
 };
 
 const toggleButton = (test) => {
@@ -94,7 +94,7 @@ socket.on('result', ({ test, ...data }) => {
       summary.innerHTML = `
       <div>Tests Passed: ${successCounter}</div>
       <div>Tests Failed: ${failedCounter}</div>
-      <div>Run Time Error: ${runtimeErrorCounter}</div>
+      <div>Runtime Errors: ${runtimeErrorCounter}</div>
       <div>Total Tests: ${testCounter}</div>
       `;
     } else summary.innerHTML = 'Go grab your 20 ;)';
