@@ -79,7 +79,7 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
       for (cmd of test.profile.preRunCommands)
         await util.promisify(exec)(cmd, {
           cwd: workingDirectory,
-          timeout: 1000,
+          timeout: 1,
           windowsHide: true,
         });
     } catch (e) {
