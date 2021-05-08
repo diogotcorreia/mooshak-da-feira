@@ -1,6 +1,6 @@
 {
   "name": "mooshak-da-feira",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Easily create unit tests for any program written in any programming language!",
   "main": "src/index.js",
   "repository": "https://github.com/diogotcorreia/mooshak-da-feira",
