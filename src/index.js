@@ -93,6 +93,7 @@ const runTest = async (i, test, code, socket, workingDirectory) => {
         {
           cwd: workingDirectory,
           timeout: test.profile.timeout,
+          killSignal: 'SIGKILL',
           windowsHide: true,
         },
         (err, stdout, stderr) => {
