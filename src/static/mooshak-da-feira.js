@@ -1,4 +1,5 @@
 const submit = document.getElementById('submit');
+const nag = document.getElementById('nag');
 let globalTests = [];
 var testCounter = 0;
 var testEvaluated = 0;
@@ -64,6 +65,10 @@ submit.onclick = async () => {
   const lastrun = document.getElementById('last-run');
   lastrun.innerText = new Date().toLocaleString();
   reset();
+};
+
+nag.onclick = async () => {
+  await fetch(DISCORD_WEBHOOK, {method: "post", body: JSON.stringify({content: "<@218721510649626635> mete o mooshak da feira feira a funcionar"})}); 
 };
 
 socket.on('result', ({ test, ...data }) => {
